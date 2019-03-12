@@ -2,27 +2,29 @@
 #include <unistd.h>
 using namespace std;
 
-mutex mux[4];
-void func(int x) {
-    mux[x].lock();
+mutex mx;
+condition_variable cond;
+atomic<int> flag(0);
+
+void func() {
+    unique_lock<mutex> lk(mx);
     printf("hello\n");
-    mux[x].unlock();
-    for(int i = 0; i < 4; i++) {
-        mux[i].lock();
+    flag++;
+    while(flag != 4){
+        /* code */
+        cond.wait(lk);
     }
-    printf("world\n");    
-    for(int i = 0; i < 4; i++) {
-        mux[i].unlock();
-    }
+    printf("world\n");
+    cond.notify_all();
 }
 
 int main() {
-    vector<thread> threadList;
-    for(int i = 0; i < 4; i++) {
-        threadList.push_back(thread(func, i));
+    vector<thread> job;
+    for (int i = 0; i < 4; i++) {
+        job.push_back(thread(func));
     }
-    for(auto val = threadList.begin(); val != threadList.end(); val++) {
-        val->join();
-    }    
+    for (auto i = job.begin(); i != job.end(); i++) {
+        i->join();
+    }
     return 0;
 }

@@ -26,11 +26,23 @@ int main() {
         perror("connect");
         return -1;
     }
-    char buf[] = "i am client";
-    write(sockfd, buf, strlen(buf)+1);
+    char buf[1024];
     char recv[1024];
     read(sockfd, recv, 1024);
     cout << recv << endl;
-    close(sockfd);
+    while(true){
+        /* code */
+        cin >> buf;
+        char* p = buf;
+        int len = strlen(buf) + 1;
+        int n = write(sockfd, p, len);
+        while(n < len){
+            /* code */
+            p += n;
+            len -= n;
+            n = write(sockfd, p, len);
+        }
+        close(sockfd);
+    }
     return 0;
 }
